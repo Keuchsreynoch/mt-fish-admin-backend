@@ -1,6 +1,6 @@
-MIGRATE=migrate
+MIGRATE=./migrate
 MIGRATIONS_DIR=./db/postgresql/migrations
-DB_URL=postgres://postgres:122002@172.31.10.86:5432/db_mini_shop
+DB_URL=postgres://postgres:123456@172.18.240.129:5432/db_mini_shop
 
 up:
 	$(MIGRATE) -path $(MIGRATIONS_DIR) -database "$(DB_URL)" up
