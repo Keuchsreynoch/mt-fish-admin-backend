@@ -3,7 +3,7 @@ package auth
 import (
 	custom_log "api-mini-shop/pkg/logs"
 	"api-mini-shop/pkg/responses"
-	"api-mini-shop/pkg/utls"
+	"api-mini-shop/pkg/utils"
 	"fmt"
 	"log"
 	"os"
@@ -57,7 +57,7 @@ func (au *AuthRepoImpl) Login(username string, password string) (*LoginReponse, 
 
 	user := users[0]
 
-	hours := utls.GetenvInt("JWT_EXP_HOUR", 7)
+	hours := utils.GetenvInt("JWT_EXP_HOUR", 7)
 	expirationTime := time.Now().Add(time.Duration(hours) * time.Hour)
 
 	// create the JWT claims
@@ -104,5 +104,65 @@ func (au *AuthRepoImpl) Login(username string, password string) (*LoginReponse, 
 			Token:     tokenString,
 			TokenType: "JWT",
 		},
+	}, nil
+}
+
+
+
+func (au *AuthRepoImpl) GetUserByUUID(user_uuid string) (*UserInfo, error) {
+	var user_info UserInfo
+
+	// prepare sql
+	sql := `
+		SELECT
+			id, user_uuid, user_name,
+			login_session, status_id
+		FROM tbl_users
+		WHERE deleted_at IS NULL 
+		AND user_uuid = $1
+	`
+
+	// execute request
+	if err := au.DBPool.Get(&user_info, sql, user_uuid); err != nil {
+		custom_log.NewCustomLog("get_userinfo_failed", err.Error(), "error")
+		return nil, err
+	}
+
+	return &user_info, nil
+}
+
+func (au *AuthRepoImpl) Register(register_req RegisterRequest) (*RegisterResponse, *responses.ErrorResponse) {
+	var register_model RegisterModel
+
+	// create register model
+	if err := register_model.New(register_req, au.DBPool); err != nil {
+		custom_log.NewCustomLog(err.MessageID, err.Detail.Error(), "error")
+		err_msg := &responses.ErrorResponse{}
+		return nil, err_msg.NewErrorResponse(err.MessageID, err.Err)
+	}
+
+	// prepare query
+	query := `
+		INSERT INTO tbl_users (
+			id, user_uuid, first_name, last_name, user_name,
+			password, email, profile_photo, status_id, "order",
+			created_by, created_at
+		) VALUES (
+			:id, :user_uuid, :first_name, :last_name, :user_name,
+			:password, :email, :profile_photo, :status_id, :order,
+			:created_by, :created_at
+		)
+	`
+
+	// execute request
+	_, err := au.DBPool.NamedExec(query, register_model)
+	if err != nil {
+		custom_log.NewCustomLog("register_failed", err.Error(), "error")
+		err_msg := &responses.ErrorResponse{}
+		return nil, err_msg.NewErrorResponse("register_failed", fmt.Errorf("cannot_insert_db_error"))
+	}
+
+	return &RegisterResponse{
+		UserInfo: register_model,
 	}, nil
 }

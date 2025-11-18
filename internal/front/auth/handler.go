@@ -2,8 +2,8 @@ package auth
 
 import (
 	response "api-mini-shop/pkg/http/response"
-	"api-mini-shop/pkg/utls"
-	"fmt"
+	"api-mini-shop/pkg/utils"
+	"errors"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -24,12 +24,12 @@ func NewAuthHandler(db_pool *sqlx.DB) *AuthHandler {
 
 func (au *AuthHandler) Login(c *fiber.Ctx) error {
 	var login_request LoginRequest
-	v := utls.NewValidator()
+	v := utils.NewValidator()
 
 	if err := login_request.Bind(c, v); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(
 			response.NewResponseError(
-				utls.Translate("login_failed", nil, c),
+				utils.Translate("login_failed", nil, c),
 				-1000,
 				err,
 			),
@@ -40,16 +40,16 @@ func (au *AuthHandler) Login(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(
 			response.NewResponseError(
-				utls.Translate(err.MessageID, nil, c),
+				utils.Translate(err.MessageID, nil, c),
 				-1000,
-				fmt.Errorf(utls.Translate(err.Err.Error(), nil, c)),
+				errors.New(utils.Translate(err.Err.Error(), nil, c)),
 			),
 		)
 	}
 
 	return c.Status(http.StatusOK).JSON(
 		response.NewResponse(
-			utls.Translate("login_success", nil, c),
+			utils.Translate("login_success", nil, c),
 			1000,
 			resp,
 		),
