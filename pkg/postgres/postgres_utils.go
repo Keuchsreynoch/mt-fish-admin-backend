@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	types "api-mini-shop/pkg/model"
+	types "fish_shooting_admin_backend/pkg/model"
 	"fmt"
 
 	"os"
@@ -19,53 +19,88 @@ func BuildSQLFilter(filters []types.Filter) (string, []interface{}) {
 	placeholder := 1
 
 	// load timezone
-	app_timezone := os.Getenv("APP_TIMEZONE")
-	if app_timezone == "" {
-		app_timezone = "Asia/Phnom_Penh"
+	appTimezone := os.Getenv("APP_TIMEZONE")
+	if appTimezone == "" {
+		appTimezone = "Asia/Phnom_Penh"
 	}
 
 	// load location
-	location, err := time.LoadLocation(app_timezone)
+	location, err := time.LoadLocation(appTimezone)
 	if err != nil {
 		return "", nil
 	}
 
-	// convert value types
+	// convert value to time.Time
 	convertToTime := func(v interface{}) (time.Time, bool) {
 		switch val := v.(type) {
+
 		case string:
-			parsed, err := time.ParseInLocation("2006-01-02", val, location)
+			parsed, err := time.ParseInLocation(
+				"2006-01-02",
+				val,
+				location,
+			)
+
 			if err == nil {
 				return parsed, true
 			}
+
 		case time.Time:
-			return val, true
+			return val.In(location), true
 		}
+
 		return time.Time{}, false
 	}
 
 	// convert boolean
 	convertToBool := func(v interface{}) (bool, bool) {
 		switch val := v.(type) {
+
 		case bool:
 			return val, true
+
 		case string:
-			if val == "true" {
+			switch strings.ToLower(val) {
+			case "true":
 				return true, true
-			}
-			if val == "false" {
+			case "false":
 				return false, true
 			}
 		}
+
 		return false, false
 	}
 
+	toInterfaceSlice := func(v interface{}) ([]interface{}, bool) {
+		switch vals := v.(type) {
+		case []interface{}:
+			return vals, true
+		case []string:
+			result := make([]interface{}, 0, len(vals))
+			for _, item := range vals {
+				result = append(result, item)
+			}
+			return result, true
+		case []int:
+			result := make([]interface{}, 0, len(vals))
+			for _, item := range vals {
+				result = append(result, item)
+			}
+			return result, true
+		}
+
+		return nil, false
+	}
+
 	for _, f := range filters {
+
 		field := f.Property
 		op := strings.ToLower(f.Operator)
 
 		switch op {
+
 		case "eq", "neq", "lt", "lte", "gt", "gte":
+
 			sqlOp := map[string]string{
 				"eq":  "=",
 				"neq": "!=",
@@ -81,30 +116,73 @@ func BuildSQLFilter(filters []types.Filter) (string, []interface{}) {
 				f.Value = b
 			}
 
-			clauses = append(clauses, fmt.Sprintf("%s %s $%d", field, sqlOp, placeholder))
+			// compare date only
+			if _, ok := f.Value.(time.Time); ok {
+				clauses = append(
+					clauses,
+					fmt.Sprintf(
+						"DATE(%s) %s DATE($%d)",
+						field,
+						sqlOp,
+						placeholder,
+					),
+				)
+			} else {
+				clauses = append(
+					clauses,
+					fmt.Sprintf(
+						"%s %s $%d",
+						field,
+						sqlOp,
+						placeholder,
+					),
+				)
+			}
+
 			params = append(params, f.Value)
 			placeholder++
 
 		case "like":
-			clauses = append(clauses, fmt.Sprintf("%s LIKE $%d", field, placeholder))
+
+			clauses = append(
+				clauses,
+				fmt.Sprintf(
+					"%s LIKE $%d",
+					field,
+					placeholder,
+				),
+			)
+
 			params = append(params, f.Value)
 			placeholder++
 
 		case "in":
-			values, ok := f.Value.([]interface{})
+
+			values, ok := toInterfaceSlice(f.Value)
 			if !ok || len(values) == 0 {
 				continue
 			}
+
 			var ph []string
+
 			for _, v := range values {
 				ph = append(ph, fmt.Sprintf("$%d", placeholder))
 				params = append(params, v)
 				placeholder++
 			}
-			clauses = append(clauses, fmt.Sprintf("%s IN (%s)", field, strings.Join(ph, ", ")))
+
+			clauses = append(
+				clauses,
+				fmt.Sprintf(
+					"%s IN (%s)",
+					field,
+					strings.Join(ph, ", "),
+				),
+			)
 
 		case "between":
-			vals, ok := f.Value.([]interface{})
+
+			vals, ok := toInterfaceSlice(f.Value)
 			if !ok || len(vals) != 2 {
 				continue
 			}
@@ -113,14 +191,35 @@ func BuildSQLFilter(filters []types.Filter) (string, []interface{}) {
 			end, ok2 := convertToTime(vals[1])
 
 			if ok1 && ok2 {
-				// Make end date inclusive to the end of the day
-				end = end.Add(24 * time.Hour).Add(-time.Second)
-				clauses = append(clauses, fmt.Sprintf("%s BETWEEN $%d AND $%d", field, placeholder, placeholder+1))
+
+				// inclusive end of day
+				end = end.Add(24*time.Hour - time.Second)
+
+				clauses = append(
+					clauses,
+					fmt.Sprintf(
+						"%s BETWEEN $%d AND $%d",
+						field,
+						placeholder,
+						placeholder+1,
+					),
+				)
+
 				params = append(params, start, end)
 				placeholder += 2
+
 			} else {
-				// Fallback: use original values
-				clauses = append(clauses, fmt.Sprintf("%s BETWEEN $%d AND $%d", field, placeholder, placeholder+1))
+
+				clauses = append(
+					clauses,
+					fmt.Sprintf(
+						"%s BETWEEN $%d AND $%d",
+						field,
+						placeholder,
+						placeholder+1,
+					),
+				)
+
 				params = append(params, vals[0], vals[1])
 				placeholder += 2
 			}
@@ -132,7 +231,6 @@ func BuildSQLFilter(filters []types.Filter) (string, []interface{}) {
 	}
 
 	return strings.Join(clauses, " AND "), params
-
 }
 
 func BuildSort(sorts []types.Sort) string {
@@ -145,7 +243,7 @@ func BuildSort(sorts []types.Sort) string {
 
 		// ensure the direction is either ASC or DESC
 		if direction != "ASC" && direction != "DESC" {
-			direction = "ASC"
+			direction = "DESC"
 		}
 
 		// add the sort clause to the list of order clauses
@@ -204,7 +302,6 @@ func GetIdByUuid(space_name string, uuid_field_name string, uuid_str string, db 
 type SeqResult struct {
 	ID int `db:"id"`
 }
-
 
 // Supports both normal DB connection and transactions
 func GetSeqNextVal(seqName string, exec sqlx.Ext) (*int, error) {

@@ -20,8 +20,8 @@ func NewRoute(db_pool *sqlx.DB, app *fiber.App) *AuthRoute {
 }
 
 func (au *AuthRoute) RegisterAuthRoute() *AuthRoute {
-	auth := au.App.Group("/api/v1/front/auth")
+	adminAuthLogin := au.App.Group("/api/v1/admin/auth/login")
 
-	auth.Post("/", au.AuthHandler.Login)
+	adminAuthLogin.Post("/", au.AuthHandler.Login)
 	return au
 }

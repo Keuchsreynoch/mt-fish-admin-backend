@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"api-mini-shop/configs"
+	"fish_shooting_admin_backend/configs"
 	"context"
 	"fmt"
 	"log"

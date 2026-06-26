@@ -1,5 +1,7 @@
 package utls
 
+import "reflect"
+
 type Response struct {
 	Success    bool        `json:"success"`
 	Message    string      `json:"message"`
@@ -12,7 +14,7 @@ func NewResponse(message string, statusCode int, data interface{}) Response {
 		Success:    true,
 		Message:    message,
 		StatusCode: statusCode,
-		Data:       data,
+		Data:       normalizeResponseData(data),
 	}
 }
 
@@ -31,9 +33,25 @@ func NewResponseWithPaging(message string, statusCode int, data interface{}, pag
 		Success:    true,
 		Message:    message,
 		StatusCode: statusCode,
-		Data:       data,
+		Data:       normalizeResponseData(data),
 		Page:       page,
 		PerPage:    perpage,
 		Total:      total,
 	}
+}
+
+func normalizeResponseData(data interface{}) interface{} {
+	if data == nil {
+		return []interface{}{}
+	}
+
+	v := reflect.ValueOf(data)
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Interface, reflect.Map, reflect.Slice:
+		if v.IsNil() {
+			return []interface{}{}
+		}
+	}
+
+	return data
 }

@@ -1,13 +1,15 @@
 package auth
 
 import (
-	"api-mini-shop/pkg/responses"
+	"fish_shooting_admin_backend/pkg/responses"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type AuthServiceCreator interface {
-	Login(username string, password string) (*LoginReponse, *responses.ErrorResponse)
+	Login(login_id string, password string) (*LoginReponse, *responses.ErrorResponse)
+	GetUserInfo(userUUID string) (*UserInfoWithMenusResponse, *responses.ErrorResponse)
+	Register(register_req RegisterRequest) (*RegisterResponse, *responses.ErrorResponse)
 }
 
 type AuthService struct {
@@ -22,6 +24,14 @@ func NewAuthService(db_pool *sqlx.DB) *AuthService {
 	}
 }
 
-func (au *AuthService) Login(username string, password string) (*LoginReponse, *responses.ErrorResponse) {
-	return au.AuthRepo.Login(username, password)
+func (au *AuthService) Login(login_id string, password string) (*LoginReponse, *responses.ErrorResponse) {
+	return au.AuthRepo.Login(login_id, password)
+}
+
+func (au *AuthService) GetUserInfo(userUUID string) (*UserInfoWithMenusResponse, *responses.ErrorResponse) {
+	return au.AuthRepo.GetUserInfoWithMenus(userUUID)
+}
+
+func (au *AuthService) Register(register_req RegisterRequest) (*RegisterResponse, *responses.ErrorResponse) {
+	return au.AuthRepo.Register(register_req)
 }

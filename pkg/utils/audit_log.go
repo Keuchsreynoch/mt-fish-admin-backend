@@ -1,8 +1,8 @@
 package utils
 
 import (
-	custom_log "api-mini-shop/pkg/logs"
-	"api-mini-shop/pkg/postgres"
+	custom_log "fish_shooting_admin_backend/pkg/logs"
+	"fish_shooting_admin_backend/pkg/postgres"
 	"fmt"
 	"os"
 	"time"

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"api-mini-shop/configs"
-	"api-mini-shop/db/postgresql"
-	"api-mini-shop/handler"
-	"api-mini-shop/pkg/logs"
-	"api-mini-shop/pkg/redis"
-	"api-mini-shop/pkg/swagger"
-	"api-mini-shop/router"
+	"fish_shooting_admin_backend/configs"
+	"fish_shooting_admin_backend/db/postgresql"
+	"fish_shooting_admin_backend/handler"
+	"fish_shooting_admin_backend/pkg/logs"
+	"fish_shooting_admin_backend/pkg/redis"
+	"fish_shooting_admin_backend/pkg/swagger"
+	"fish_shooting_admin_backend/router"
 	"fmt"
 )
 

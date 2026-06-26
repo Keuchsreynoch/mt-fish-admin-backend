@@ -1,7 +1,7 @@
 package configs
 
 import (
-	"api-mini-shop/pkg/utils"
+	"fish_shooting_admin_backend/pkg/utils"
 	"log"
 	"os"
 

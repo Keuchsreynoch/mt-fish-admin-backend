@@ -1,4 +1,4 @@
-module api-mini-shop
+module fish_shooting_admin_backend
 
 go 1.23.0
 
@@ -85,7 +85,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
-	github.com/lib/pq v1.10.9
+	github.com/lib/pq v1.11.2
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
