@@ -56,7 +56,7 @@ type TotalReportResponse struct {
 }
 
 type StatementResponse struct {
-	StatementUUID         string     `json:"statement_uuid"`
+	StatementUUID     zz    string     `json:"statement_uuid"`
 	MemberID              int64      `json:"-"`
 	MemberUUID            string     `json:"member_uuid"`
 	UserName              string     `json:"username"`
