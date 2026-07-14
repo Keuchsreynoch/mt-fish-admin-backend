@@ -196,12 +196,14 @@ func (r *AssignMenusRequest) Bind(c *fiber.Ctx, _ *utils.Validator) error {
 }
 
 type DashboardSummaryResponse struct {
-	TotalTurnover      string                          `json:"total_turnover"`
-	TotalPayout        string                          `json:"total_payout"`
-	TotalCompanyProfit string                          `json:"total_company_profit"`
-	CurrentPoolJackpot string                          `json:"current_pool_jackpot"`
-	ThresholdAmount    string                          `json:"threshold_amount"`
-	TopWinMembers      []DashboardTopWinMemberResponse `json:"top_win_members"`
+	TotalTurnover        string                          `json:"total_turnover"`
+	TotalPayout          string                          `json:"total_payout"`
+	TotalCompanyProfit   string                          `json:"total_company_profit"`
+	RewardPool           string                          `json:"reward_pool"`
+	CurrentCompanyProfit string                          `json:"current_company_profit"`
+	CurrentPoolJackpot   string                          `json:"current_pool_jackpot"`
+	ThresholdAmount      string                          `json:"threshold_amount"`
+	TopWinMembers        []DashboardTopWinMemberResponse `json:"top_win_members"`
 }
 
 type DashboardTopWinMemberResponse struct {
@@ -225,7 +227,14 @@ type dashboardTopWinMemberRow struct {
 }
 
 type DashboardTotals struct {
-	TotalTurnover      decimal.Decimal `db:"total_turnover"`
-	TotalPayout        decimal.Decimal `db:"total_payout"`
-	TotalCompanyProfit decimal.Decimal `db:"total_company_profit"`
+	TotalTurnover        decimal.Decimal `db:"total_turnover"`
+	TotalPayout          decimal.Decimal `db:"total_payout"`
+	TotalCompanyProfit   decimal.Decimal `db:"total_company_profit"`
+	RewardPool           decimal.Decimal `db:"reward_pool"`
+	CurrentCompanyProfit decimal.Decimal `db:"current_company_profit"`
+}
+
+type CurrentJackpot struct {
+	CurrentPoolJackpot decimal.Decimal `db:"current_pool_jackpot"`
+	ThresholdAmount    decimal.Decimal `db:"threshold_amount"`
 }

@@ -136,14 +136,17 @@ func (r *JackpotMemberBonusRepoImpl) CreateMemberBonus(req CreateJackpotMemberBo
 	}
 
 	memberRow := struct {
+		MemberID   int64  `db:"member_id"`
 		MemberName string `db:"member_name"`
 	}{}
 	if err := tx.Get(&memberRow, `
-		SELECT COALESCE(user_name, '') AS member_name
+		SELECT
+			COALESCE(id, 0) AS member_id,
+			COALESCE(user_name, '') AS member_name
 		FROM tbl_members
-		WHERE id = $1 AND deleted_at IS NULL
+		WHERE user_name = $1 AND deleted_at IS NULL
 		FOR UPDATE
-	`, req.MemberID); err != nil {
+	`, req.MemberName); err != nil {
 		custom_log.NewCustomLog("create_jackpot_member_bonus_failed", err.Error(), "error")
 		e := &responses.ErrorResponse{}
 		if err == sql.ErrNoRows {
@@ -164,7 +167,7 @@ func (r *JackpotMemberBonusRepoImpl) CreateMemberBonus(req CreateJackpotMemberBo
 			created_by
 		) VALUES ($1, $2, $3, 1, 1, $4, $5)
 		RETURNING id
-	`, req.MemberID, amount, req.Note, now, currentUser.Id).Scan(&bonusID); err != nil {
+	`, memberRow.MemberID, amount, req.Note, now, currentUser.Id).Scan(&bonusID); err != nil {
 		custom_log.NewCustomLog("create_jackpot_member_bonus_failed", err.Error(), "error")
 		e := &responses.ErrorResponse{}
 		return nil, e.NewErrorResponse("create_jackpot_member_bonus_failed", fmt.Errorf("error_database"))
@@ -179,13 +182,14 @@ func (r *JackpotMemberBonusRepoImpl) CreateMemberBonus(req CreateJackpotMemberBo
 
 	resp := JackpotMemberBonusResponse{
 		ID:            bonusID,
-		MemberID:      req.MemberID,
+		MemberID:      memberRow.MemberID,
 		MemberName:    memberRow.MemberName,
 		CreatedByName: currentUser.UserName,
 		Amount:        amount.Round(2).StringFixed(2),
 		Note:          req.Note,
 		Order:         1,
 		StatusID:      1,
+		CreatedAt:     now,
 		CreatedBy:     &currentUser.Id,
 	}
 

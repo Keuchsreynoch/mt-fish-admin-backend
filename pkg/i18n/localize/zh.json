@@ -78,6 +78,8 @@
     "cannot_insert_notification": "创建通知失败",
     "get_coin_transactions_failed": "获取金币交易失败",
     "get_coin_transactions_success": "金币交易获取成功",
+    "get_statements_failed": "获取对账单失败",
+    "get_statements_success": "对账单获取成功",
     "get_jackpot_global_success": "Jackpot 配置获取成功",
     "get_jackpot_global_failed": "获取 Jackpot 配置失败",
     "get_jackpot_global_form_success": "Jackpot 配置表单获取成功",

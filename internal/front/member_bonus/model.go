@@ -24,9 +24,9 @@ type JackpotMemberBonusShowRequest struct {
 }
 
 type CreateJackpotMemberBonusRequest struct {
-	MemberID int64  `json:"member_id" validate:"required,min=1"`
-	Amount   string `json:"amount" validate:"required"`
-	Note     string `json:"note"`
+	MemberName string `json:"member_name" validate:"required"`
+	Amount     string `json:"amount" validate:"required"`
+	Note       string `json:"note"`
 }
 
 func (r *JackpotMemberBonusShowRequest) Bind(c *fiber.Ctx, v *utils.Validator) error {
@@ -50,6 +50,8 @@ func (r *CreateJackpotMemberBonusRequest) Bind(c *fiber.Ctx, v *utils.Validator)
 		return errors.New(utils.Translate("invalid_body", nil, c))
 	}
 
+	r.MemberName = strings.TrimSpace(r.MemberName)
+
 	if err := v.Validate(r, c); err != nil {
 		return err
 	}
@@ -63,39 +65,39 @@ type JackpotMemberBonusListResponse struct {
 }
 
 type JackpotMemberBonusResponse struct {
-	ID           int64      `json:"id"`
-	MemberID     int64      `json:"member_id"`
-	MemberName   string     `json:"member_name"`
-	MemberUUID   string     `json:"-"`
+	ID            int64      `json:"id"`
+	MemberID      int64      `json:"member_id"`
+	MemberName    string     `json:"member_name"`
+	MemberUUID    string     `json:"-"`
 	CreatedByName string     `json:"created_by_name"`
-	Amount       string     `json:"amount"`
-	Note         string     `json:"note"`
-	Order        int        `json:"order"`
-	StatusID     int        `json:"status_id"`
-	CreatedAt    time.Time  `json:"created_at"`
-	CreatedBy    *int       `json:"created_by"`
-	UpdatedAt    *time.Time `json:"-"`
-	UpdatedBy    *int       `json:"-"`
-	DeletedAt    *time.Time `json:"-"`
-	DeletedBy    *int       `json:"-"`
+	Amount        string     `json:"amount"`
+	Note          string     `json:"note"`
+	Order         int        `json:"order"`
+	StatusID      int        `json:"status_id"`
+	CreatedAt     time.Time  `json:"created_at"`
+	CreatedBy     *int       `json:"created_by"`
+	UpdatedAt     *time.Time `json:"-"`
+	UpdatedBy     *int       `json:"-"`
+	DeletedAt     *time.Time `json:"-"`
+	DeletedBy     *int       `json:"-"`
 }
 
 type jackpotMemberBonusRow struct {
-	ID           int64           `db:"id"`
-	MemberID     int64           `db:"member_id"`
-	MemberName   string          `db:"member_name"`
-	MemberUUID   string          `db:"member_uuid"`
-	CreatedByName string         `db:"created_by_name"`
-	Amount       decimal.Decimal `db:"amount"`
-	Note         string          `db:"note"`
-	Order        int             `db:"order"`
-	StatusID     int             `db:"status_id"`
-	CreatedAt    time.Time       `db:"created_at"`
-	CreatedBy    *int            `db:"created_by"`
-	UpdatedAt    *time.Time      `db:"updated_at"`
-	UpdatedBy    *int            `db:"updated_by"`
-	DeletedAt    *time.Time      `db:"deleted_at"`
-	DeletedBy    *int            `db:"deleted_by"`
+	ID            int64           `db:"id"`
+	MemberID      int64           `db:"member_id"`
+	MemberName    string          `db:"member_name"`
+	MemberUUID    string          `db:"member_uuid"`
+	CreatedByName string          `db:"created_by_name"`
+	Amount        decimal.Decimal `db:"amount"`
+	Note          string          `db:"note"`
+	Order         int             `db:"order"`
+	StatusID      int             `db:"status_id"`
+	CreatedAt     time.Time       `db:"created_at"`
+	CreatedBy     *int            `db:"created_by"`
+	UpdatedAt     *time.Time      `db:"updated_at"`
+	UpdatedBy     *int            `db:"updated_by"`
+	DeletedAt     *time.Time      `db:"deleted_at"`
+	DeletedBy     *int            `db:"deleted_by"`
 }
 
 type jackpotMemberBonusFilterDraft struct {

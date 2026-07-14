@@ -78,6 +78,8 @@
     "cannot_insert_notification": "បរាជ័យក្នុងការបង្កើតការជូនដំណឹង",
     "get_coin_transactions_failed": "បរាជ័យក្នុងការទាញយកប្រតិបត្តិការកាក់",
     "get_coin_transactions_success": "បានទាញយកប្រតិបត្តិការកាក់ដោយជោគជ័យ",
+    "get_statements_failed": "បរាជ័យក្នុងការទាញយកទិន្នន័យ",
+    "get_statements_success": "បានទាញយកទិន្នន័យដោយជោគជ័យ",
     "get_jackpot_global_success": "បានទាញយកការកំណត់ Jackpot ដោយជោគជ័យ",
     "get_jackpot_global_failed": "បរាជ័យក្នុងការទាញយកការកំណត់ Jackpot",
     "get_jackpot_global_form_success": "បានទាញយកទម្រង់កំណត់ Jackpot ដោយជោគជ័យ",

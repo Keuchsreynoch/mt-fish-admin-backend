@@ -58,24 +58,40 @@ func (r *AdminRepoImpl) GetDashboard() (*DashboardSummaryResponse, *responses.Er
 	`
 
 	dashboardTotals := DashboardTotals{}
-	if err := r.DBPool.Get(&dashboardTotals, fmt.Sprintf(`
+	if err := r.DBPool.Get(&dashboardTotals, `
 		SELECT
-			COALESCE(SUM(COALESCE(s.total_bet_amount, t.bet_amount, b.bet_amount, 0)), 0) AS total_turnover,
-			COALESCE(SUM(COALESCE(s.payout_amount, t.payout_amount, b.payout_amount, 0)), 0) AS total_payout,
-			COALESCE(SUM(COALESCE(s.total_bet_amount, t.bet_amount, b.bet_amount, 0)), 0)
-				- COALESCE(SUM(COALESCE(s.payout_amount, t.payout_amount, b.payout_amount, 0)), 0) AS total_company_profit
-		%s
-		%s
-	`, baseFromClause, todayWhereClause)); err != nil {
+			COALESCE(SUM(total_turnover), 0) AS total_turnover,
+			COALESCE(SUM(total_payout), 0) AS total_payout,
+			COALESCE(SUM(total_company_profit), 0) AS total_company_profit,
+			COALESCE(SUM(reward_pool_amount), 0) AS reward_pool
+		FROM (
+			SELECT
+				total_turnover,
+				total_payout,
+				total_company_profit,
+				reward_pool_amount
+			FROM tbl_rtp_global
+			WHERE status_id = 1
+			ORDER BY period_date DESC, id DESC
+			LIMIT 1
+		) r
+	`); err != nil {
 		custom_log.NewCustomLog("get_admin_dashboard_failed", err.Error(), "error")
 		e := &responses.ErrorResponse{}
 		return nil, e.NewErrorResponse("get_admin_dashboard_failed", fmt.Errorf("error_database"))
 	}
 
-	currentJackpot := struct {
-		CurrentPoolJackpot decimal.Decimal `db:"current_pool_jackpot"`
-		ThresholdAmount    decimal.Decimal `db:"threshold_amount"`
-	}{}
+	if err := r.DBPool.Get(&dashboardTotals.CurrentCompanyProfit, `
+		SELECT COALESCE(SUM(company_profit_coin), 0) AS current_company_profit
+		FROM tbl_company_ledger
+		WHERE deleted_at IS NULL
+	`); err != nil {
+		custom_log.NewCustomLog("get_admin_dashboard_failed", err.Error(), "error")
+		e := &responses.ErrorResponse{}
+		return nil, e.NewErrorResponse("get_admin_dashboard_failed", fmt.Errorf("error_database"))
+	}
+
+	currentJackpot := CurrentJackpot{}
 	if err := r.DBPool.Get(&currentJackpot, `
 		SELECT COALESCE(current_amount, 0) AS current_pool_jackpot
 			, COALESCE(threshold_amount, 0) AS threshold_amount
@@ -130,12 +146,14 @@ func (r *AdminRepoImpl) GetDashboard() (*DashboardSummaryResponse, *responses.Er
 	}
 
 	return &DashboardSummaryResponse{
-		TotalTurnover:      dashboardTotals.TotalTurnover.Round(3).StringFixed(3),
-		TotalPayout:        dashboardTotals.TotalPayout.Round(3).StringFixed(3),
-		TotalCompanyProfit: dashboardTotals.TotalCompanyProfit.Round(3).StringFixed(3),
-		CurrentPoolJackpot: currentJackpot.CurrentPoolJackpot.Round(3).StringFixed(3),
-		ThresholdAmount:    currentJackpot.ThresholdAmount.Round(3).StringFixed(3),
-		TopWinMembers:      topMembers,
+		TotalTurnover:        dashboardTotals.TotalTurnover.Round(3).StringFixed(3),
+		TotalPayout:          dashboardTotals.TotalPayout.Round(3).StringFixed(3),
+		TotalCompanyProfit:   dashboardTotals.TotalCompanyProfit.Round(3).StringFixed(3),
+		RewardPool:           dashboardTotals.RewardPool.Round(3).StringFixed(3),
+		CurrentCompanyProfit: dashboardTotals.CurrentCompanyProfit.Round(3).StringFixed(3),
+		CurrentPoolJackpot:   currentJackpot.CurrentPoolJackpot.Round(3).StringFixed(3),
+		ThresholdAmount:      currentJackpot.ThresholdAmount.Round(3).StringFixed(3),
+		TopWinMembers:        topMembers,
 	}, nil
 }
 

@@ -157,8 +157,6 @@ func (r *StatementRepoImpl) getStatements(req StatementShowRequest, member_uuid 
 		%s
 	`, baseFromClause, whereClause, sqlOrderBy, sqlLimit)
 
-	fmt.Println()
-
 	if err := r.DBPool.Select(&rows, query, argsFilters...); err != nil {
 		custom_log.NewCustomLog("get_statements_failed", err.Error(), "error")
 		e := &responses.ErrorResponse{}

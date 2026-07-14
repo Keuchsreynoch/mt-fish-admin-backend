@@ -12,11 +12,12 @@ import (
 )
 
 type UpdateGameConfigRequest struct {
-	JackpotRate string `json:"jackpot_rate" validate:"required"`
-	RtpTarget   string `json:"rtp_target" validate:"required"`
-	RtpFloor    string `json:"rtp_floor" validate:"required"`
-	RtpCeiling  string `json:"rtp_ceiling" validate:"required"`
-	StatusID    int    `json:"status_id" validate:"required"`
+	JackpotRate       string `json:"jackpot_rate" validate:"required"`
+	RtpTarget         string `json:"rtp_target" validate:"required"`
+	RtpFloor          string `json:"rtp_floor" validate:"required"`
+	RtpCeiling        string `json:"rtp_ceiling" validate:"required"`
+	CompanyProfitRate string `json:"company_profit_rate" validate:"required"`
+	StatusID          int    `json:"status_id" validate:"required"`
 }
 
 type UpdateGameConfigResponse struct {
@@ -25,6 +26,7 @@ type UpdateGameConfigResponse struct {
 	RtpTarget         string    `json:"rtp_target"`
 	RtpFloor          string    `json:"rtp_floor"`
 	RtpCeiling        string    `json:"rtp_ceiling"`
+	CompanyProfitRate string    `json:"company_profit_rate"`
 	StatusID          int       `json:"status_id"`
 	UpdatedAt         time.Time `json:"updated_at"`
 	UpdatedBy         *int      `json:"updated_by"`
@@ -32,13 +34,15 @@ type UpdateGameConfigResponse struct {
 }
 
 type GetGameConfigResponse struct {
-	GameName          string `json:"game_name"`
-	RtpTarget         string `json:"rtp_target"`
-	RtpFloor          string `json:"rtp_floor"`
-	RtpCeiling        string `json:"rtp_ceiling"`
-	JackpotRate       string `json:"jackpot_rate"`
-	StatusID          int    `json:"status_id"`
-	UpdatedByUsername string `json:"updated_by_username"`
+	GameName          string    `json:"game_name"`
+	RtpTarget         string    `json:"rtp_target"`
+	RtpFloor          string    `json:"rtp_floor"`
+	RtpCeiling        string    `json:"rtp_ceiling"`
+	JackpotRate       string    `json:"jackpot_rate"`
+	CompanyProfitRate string    `json:"company_profit_rate"`
+	StatusID          int       `json:"status_id"`
+	UpdatedByUsername string    `json:"updated_by_username"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }
 
 type gameConfigRow struct {
@@ -49,6 +53,7 @@ type gameConfigRow struct {
 	RtpFloor           decimal.Decimal `db:"rtp_floor"`
 	RtpCeiling         decimal.Decimal `db:"rtp_ceiling"`
 	JackpotRate        decimal.Decimal `db:"jackpot_rate"`
+	CompanyProfitRate  decimal.Decimal `db:"company_profit_rate"`
 	MaxBulletPerSecond decimal.Decimal `db:"max_bullet_per_second"`
 	AllowAutoFire      bool            `db:"allow_auto_fire"`
 	AllowAutoLock      bool            `db:"allow_auto_lock"`
@@ -74,6 +79,7 @@ func (r *UpdateGameConfigRequest) Bind(c *fiber.Ctx, v *utils.Validator) error {
 	r.RtpTarget = strings.TrimSpace(r.RtpTarget)
 	r.RtpFloor = strings.TrimSpace(r.RtpFloor)
 	r.RtpCeiling = strings.TrimSpace(r.RtpCeiling)
+	r.CompanyProfitRate = strings.TrimSpace(r.CompanyProfitRate)
 
 	if err := v.Validate(r, c); err != nil {
 		return err

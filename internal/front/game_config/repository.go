@@ -41,6 +41,7 @@ func (r *GameConfigRepoImpl) GetGameConfig() (*GetGameConfigResponse, *responses
 			COALESCE(g.rtp_floor, 0) AS rtp_floor,
 			COALESCE(g.rtp_ceiling, 0) AS rtp_ceiling,
 			COALESCE(g.jackpot_rate, 0) AS jackpot_rate,
+			COALESCE(g.company_profit_rate, 0) AS company_profit_rate,
 			COALESCE(g.max_bullet_per_second, 0) AS max_bullet_per_second,
 			g.allow_auto_fire,
 			g.allow_auto_lock,
@@ -75,8 +76,10 @@ func (r *GameConfigRepoImpl) GetGameConfig() (*GetGameConfigResponse, *responses
 		RtpFloor:          row.RtpFloor.StringFixed(4),
 		RtpCeiling:        row.RtpCeiling.StringFixed(4),
 		JackpotRate:       row.JackpotRate.StringFixed(6),
+		CompanyProfitRate: row.CompanyProfitRate.StringFixed(6),
 		StatusID:          row.StatusID,
 		UpdatedByUsername: row.UpdatedByUsername,
+		UpdatedAt:         row.UpdatedAt,
 	}, nil
 }
 
@@ -85,6 +88,11 @@ func (r *GameConfigRepoImpl) UpdateGameConfig(req UpdateGameConfigRequest) (*Upd
 	if err != nil {
 		e := &responses.ErrorResponse{}
 		return nil, e.NewErrorResponse("invalid_jackpot_rate", err)
+	}
+	companyProfitRate, err := decimal.NewFromString(strings.TrimSpace(req.CompanyProfitRate))
+	if err != nil {
+		e := &responses.ErrorResponse{}
+		return nil, e.NewErrorResponse("invalid_company_profit_rate", err)
 	}
 	rtpTarget, err := decimal.NewFromString(strings.TrimSpace(req.RtpTarget))
 	if err != nil {
@@ -106,6 +114,10 @@ func (r *GameConfigRepoImpl) UpdateGameConfig(req UpdateGameConfigRequest) (*Upd
 		e := &responses.ErrorResponse{}
 		return nil, e.NewErrorResponse("jackpot_rate_must_be_between_0_and_1", fmt.Errorf("jackpot rate must be between 0 and 1"))
 	}
+	if companyProfitRate.LessThan(decimal.Zero) || companyProfitRate.GreaterThan(decimal.NewFromInt(1)) {
+		e := &responses.ErrorResponse{}
+		return nil, e.NewErrorResponse("company_profit_rate_must_be_between_0_and_1", fmt.Errorf("company profit rate must be between 0 and 1"))
+	}
 	if rtpFloor.LessThanOrEqual(decimal.Zero) || rtpFloor.GreaterThan(decimal.NewFromInt(1)) {
 		e := &responses.ErrorResponse{}
 		return nil, e.NewErrorResponse("rtp_floor_must_be_between_0_and_1", fmt.Errorf("rtp floor must be between 0 and 1"))
@@ -117,6 +129,10 @@ func (r *GameConfigRepoImpl) UpdateGameConfig(req UpdateGameConfigRequest) (*Upd
 	if rtpTarget.LessThanOrEqual(decimal.Zero) || rtpTarget.GreaterThan(decimal.NewFromInt(1)) {
 		e := &responses.ErrorResponse{}
 		return nil, e.NewErrorResponse("rtp_target_must_be_between_0_and_1", fmt.Errorf("rtp target must be between 0 and 1"))
+	}
+	if rtpTarget.Add(jackpotRate).Add(companyProfitRate).GreaterThan(decimal.NewFromInt(1)) {
+		e := &responses.ErrorResponse{}
+		return nil, e.NewErrorResponse("rtp_target_jackpot_rate_company_profit_rate_must_be_less_than_or_equal_to_1", fmt.Errorf("rtp target, jackpot rate, and company profit rate must be less than or equal to 1"))
 	}
 	if rtpFloor.GreaterThan(rtpCeiling) {
 		e := &responses.ErrorResponse{}
@@ -171,14 +187,15 @@ func (r *GameConfigRepoImpl) UpdateGameConfig(req UpdateGameConfigRequest) (*Upd
 	if _, err := tx.Exec(`
 		UPDATE tbl_game_configs
 		SET jackpot_rate = $1,
-			rtp_target = $2,
-			rtp_floor = $3,
-			rtp_ceiling = $4,
-			status_id = $5,
-			updated_at = $6,
-			updated_by = $7
-		WHERE id = $8
-	`, jackpotRate, rtpTarget, rtpFloor, rtpCeiling, req.StatusID, now, r.UserContext.Id, row.ID); err != nil {
+			company_profit_rate = $2,
+			rtp_target = $3,
+			rtp_floor = $4,
+			rtp_ceiling = $5,
+			status_id = $6,
+			updated_at = $7,
+			updated_by = $8
+		WHERE id = $9
+	`, jackpotRate, companyProfitRate, rtpTarget, rtpFloor, rtpCeiling, req.StatusID, now, r.UserContext.Id, row.ID); err != nil {
 		custom_log.NewCustomLog("update_game_config_failed", err.Error(), "error")
 		e := &responses.ErrorResponse{}
 		return nil, e.NewErrorResponse("update_game_config_failed", fmt.Errorf("error_database"))
@@ -194,6 +211,7 @@ func (r *GameConfigRepoImpl) UpdateGameConfig(req UpdateGameConfigRequest) (*Upd
 	return &UpdateGameConfigResponse{
 		ID:                row.ID,
 		JackpotRate:       jackpotRate.StringFixed(6),
+		CompanyProfitRate: companyProfitRate.StringFixed(6),
 		RtpTarget:         rtpTarget.StringFixed(4),
 		RtpFloor:          rtpFloor.StringFixed(4),
 		RtpCeiling:        rtpCeiling.StringFixed(4),

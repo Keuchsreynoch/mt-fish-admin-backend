@@ -10,6 +10,7 @@ import (
 	jackpothistory "fish_shooting_admin_backend/internal/front/jackpot_history"
 	"fish_shooting_admin_backend/internal/front/member"
 	memberbonus "fish_shooting_admin_backend/internal/front/member_bonus"
+	"fish_shooting_admin_backend/internal/front/report"
 	"fish_shooting_admin_backend/internal/front/statement"
 	"fish_shooting_admin_backend/internal/front/websocket"
 	"fish_shooting_admin_backend/pkg/middlewares"
@@ -29,6 +30,7 @@ type FrontService struct {
 	AdminRoute           *admin.AdminRoute
 	MemberRoute          *member.MemberRoute
 	StatementRoute       *statement.StatementRoute
+	ReportRoute          *report.ReportRoute
 	CoinTransactionRoute *cointransaction.CoinTransactionRoute
 	GameConfigRoute      *gameconfig.GameConfigRoute
 	JackpotRoute         *jackpot.JackpotRoute
@@ -46,6 +48,7 @@ func NewFrontService(app *fiber.App, db *sqlx.DB) *FrontService {
 	adminRoute := admin.NewAdminRoute(db, app).RegisterAdminRoute()
 	memberRoute := member.NewMemberRoute(app, db).RegisterMemberRoute()
 	statementRoute := statement.NewStatementRoute(app, db).RegisterStatementRoute()
+	reportRoute := report.NewReportRoute(app, db).RegisterReportRoute()
 	coinTransactionRoute := cointransaction.NewCoinTransactionRoute(app, db).RegisterCoinTransactionRoute()
 	gameConfigRoute := gameconfig.NewGameConfigRoute(app, db).RegisterGameConfigRoute()
 	jackpotRoute := jackpot.NewJackpotRoute(app, db).RegisterJackpotRoute()
@@ -59,6 +62,7 @@ func NewFrontService(app *fiber.App, db *sqlx.DB) *FrontService {
 		AdminRoute:           adminRoute,
 		MemberRoute:          memberRoute,
 		StatementRoute:       statementRoute,
+		ReportRoute:          reportRoute,
 		CoinTransactionRoute: coinTransactionRoute,
 		GameConfigRoute:      gameConfigRoute,
 		JackpotRoute:         jackpotRoute,

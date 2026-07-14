@@ -78,6 +78,8 @@
     "cannot_insert_notification": "Failed to create notification",
     "get_coin_transactions_failed": "Failed to get coin transactions",
     "get_coin_transactions_success": "Coin transactions fetched successfully",
+    "get_statements_failed": "Failed to get statements",
+    "get_statements_success": "Statements fetched successfully",
     "get_jackpot_global_success": "Jackpot configuration fetched successfully",
     "get_jackpot_global_failed": "Failed to get jackpot configuration",
     "get_jackpot_global_form_success": "Jackpot configuration form fetched successfully",
